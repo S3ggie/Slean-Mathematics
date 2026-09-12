@@ -1,0 +1,18 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "slean-experiment"
+version = "0.0.1"
+requires-python = ">=3.12"
+dependencies = ["pydantic>=2.11,<3", "typer>=0.16,<1"]
+
+[project.optional-dependencies]
+test = ["pytest>=8.4,<9", "hypothesis>=6.130,<7"]
+
+[project.scripts]
+slean-exp = "slean_experiment.cli:app"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
