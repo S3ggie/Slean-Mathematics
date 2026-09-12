@@ -201,3 +201,50 @@ def test_deeply_nested_candidate_a_and_b_structures_validate() -> None:
             "body": nested_b,
         }
     assert validate_result("b", {"outcome": "formalization", "ir": nested_b}).outcome == "formalization"
+
+
+@pytest.mark.parametrize("candidate, node", [
+    ("a", {"kind": "bind", "binder": {"kind": "symbol", "id": "lambda"},
+            "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                           "source_span": {"start": 1, "end": 4}}],
+            "body": {"kind": "var", "name": "x"}}),
+    ("b", {"kind": "forall", "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                                                  "source_span": {"start": 2, "end": 5}}],
+            "body": {"kind": "symbol", "id": "P"}}),
+    ("c", {"kind": "exists", "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                                                 "source_span": {"start": 3, "end": 6}}],
+            "body": {"kind": "symbol", "id": "P"}}),
+])
+def test_bound_variables_accept_source_spans(candidate: str, node: dict[str, object]) -> None:
+    result = validate_result(candidate, {"outcome": "formalization", "ir": node})
+    assert result.ir.variables[0].source_span.start >= 0
+
+
+@pytest.mark.parametrize("candidate, node", [
+    ("a", {"kind": "bind", "binder": {"kind": "symbol", "id": "lambda"},
+            "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                           "source_span": {"start": 4, "end": 3}}],
+            "body": {"kind": "var", "name": "x"}}),
+    ("b", {"kind": "forall", "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                                                  "source_span": {"start": 4, "end": 3}}],
+            "body": {"kind": "symbol", "id": "P"}}),
+    ("c", {"kind": "exists", "variables": [{"name": "x", "type": {"kind": "symbol", "id": "Nat"},
+                                                 "source_span": {"start": 4, "end": 3}}],
+            "body": {"kind": "symbol", "id": "P"}}),
+])
+def test_bound_variables_reject_invalid_source_spans(candidate: str, node: dict[str, object]) -> None:
+    with pytest.raises(ValidationError):
+        validate_result(candidate, {"outcome": "formalization", "ir": node})
+
+
+def test_bound_variable_schemas_expose_optional_source_spans(tmp_path: Path) -> None:
+    write_json_schemas(tmp_path)
+    for filename, definition in (
+        ("candidate_a.schema.json", "ABoundVariable"),
+        ("candidate_b.schema.json", "BBoundVariable"),
+        ("candidate_c.schema.json", "CBoundVariable"),
+    ):
+        schema = json.loads((tmp_path / filename).read_text())
+        bound = schema["$defs"][definition]
+        assert "source_span" in bound["properties"]
+        assert "source_span" not in bound["required"]

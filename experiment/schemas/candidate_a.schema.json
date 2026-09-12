@@ -194,6 +194,17 @@
           "title": "Name",
           "type": "string"
         },
+        "source_span": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/SourceSpan"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
         "type": {
           "discriminator": {
             "mapping": {

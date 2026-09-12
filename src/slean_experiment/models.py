@@ -45,6 +45,7 @@ class ASymbol(StrictModel):
 class ABoundVariable(StrictModel):
     name: StrictStr
     type: AExpr
+    source_span: SourceSpan | None = None
 
 
 class AApply(StrictModel):
@@ -86,6 +87,7 @@ class BSymbol(StrictModel):
 class BBoundVariable(StrictModel):
     name: StrictStr
     type: BExpr
+    source_span: SourceSpan | None = None
 
 
 class BApply(StrictModel):
@@ -144,6 +146,7 @@ class CSymbol(StrictModel):
 class CBoundVariable(StrictModel):
     name: StrictStr
     type: CExpr
+    source_span: SourceSpan | None = None
 
 
 class CApply(StrictModel):
