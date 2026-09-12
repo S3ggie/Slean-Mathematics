@@ -15,13 +15,13 @@
 - Lean remains pinned to `v4.34.0-rc2`.
 - Mathlib remains pinned to `70f3f13433ba3d82a15a7cae679abac9128f102b`.
 - No LLM participates in catalog generation, type resolution, cache maintenance, registry lookup, or compilation.
-- Catalog generation must enumerate the entire `env.constants` name set and must not call `ppExpr` per catalog row.
+- Catalog generation enumerates the entire `env.constants` name set and does not call `ppExpr` per catalog row.
 - Raw IDs remain `mathlib.<Lean.Name>`.
 - Curated stable Slean IDs remain authoritative when a curated declaration target has the same exact Lean name as a raw catalog declaration.
 - Curated core forms remain independent of declaration catalog rows.
-- Catalog and cache writes must not corrupt a previously valid artifact on failure.
+- Catalog and cache writes use validation before atomic replacement so failure cannot corrupt a valid artifact.
 - Default pytest remains fast and excludes tests marked `slow`.
-- The legacy 5,000-row typed sample is temporary compatibility state only and must be retired by Task 4D.
+- The legacy 5,000-row typed sample is temporary compatibility state only and is deleted in Task 4D.
 
 ---
 
@@ -35,24 +35,25 @@
 - Preserve temporarily: `experiment/registry/mathlib.jsonl`
 
 **Interfaces:**
-- Produces `CatalogSource(kind="environment", lean_revision, mathlib_revision)`.
-- Produces `CatalogEntry(id: str, lean_name: str, source: CatalogSource)`; there is no `lean_type` field.
-- Produces `CatalogExportReport(success: bool, declaration_count: int, output: Path, lean_revision: str, mathlib_revision: str)`.
-- Produces `export_catalog(lean_root: Path, output: Path) -> CatalogExportReport`.
-- Produces `load_catalog(path: Path) -> tuple[CatalogEntry, ...]` sorted by `lean_name`.
-- Task 4B consumes this catalog API.
+- `CatalogSource(kind: Literal["environment"], revision: str, mathlib_revision: str)`
+- `CatalogEntry(id: str, lean_name: str, source: CatalogSource)`; there is no `lean_type` field.
+- `CatalogExportReport(success: bool, declaration_count: int, output: Path, lean_revision: str, mathlib_revision: str)`
+- `export_catalog(lean_root: Path, output: Path) -> CatalogExportReport`
+- `load_catalog(path: Path) -> tuple[CatalogEntry, ...]`
 
-- [ ] **Step 1: Write failing lightweight-catalog contract tests**
+- [ ] **Step 1: Write failing catalog contract tests**
 
-Create `tests/test_catalog.py` with focused tests equivalent to:
+Create `tests/test_catalog.py` with these concrete tests:
 
 ```python
 from pathlib import Path
 import json
 import pytest
+from pydantic import ValidationError
 
 from slean_experiment.catalog import (
     CatalogEntry,
+    CatalogSource,
     LEAN_ENVIRONMENT_REVISION,
     MATHLIB_REVISION,
     load_catalog,
@@ -67,7 +68,7 @@ def test_catalog_rows_have_no_precomputed_type() -> None:
     assert "lean_type" not in row
 
 
-def test_catalog_is_complete_scale_and_sorted() -> None:
+def test_catalog_is_full_scale_unique_and_sorted() -> None:
     entries = load_catalog(CATALOG)
     names = [entry.lean_name for entry in entries]
     assert len(entries) > 5002
@@ -82,11 +83,33 @@ def test_catalog_ids_and_pins_are_exact() -> None:
         assert entry.id == f"mathlib.{entry.lean_name}"
         assert entry.source.revision == LEAN_ENVIRONMENT_REVISION
         assert entry.source.mathlib_revision == MATHLIB_REVISION
+
+
+def test_catalog_entry_rejects_blank_name() -> None:
+    with pytest.raises(ValidationError):
+        CatalogEntry.model_validate({
+            "id": "mathlib.",
+            "lean_name": " ",
+            "source": {
+                "kind": "environment",
+                "revision": LEAN_ENVIRONMENT_REVISION,
+                "mathlib_revision": MATHLIB_REVISION,
+            },
+        })
+
+
+def test_catalog_source_rejects_wrong_pin() -> None:
+    with pytest.raises(ValidationError):
+        CatalogSource.model_validate({
+            "kind": "environment",
+            "revision": "wrong",
+            "mathlib_revision": MATHLIB_REVISION,
+        })
 ```
 
-Also test malformed rows, duplicate IDs/names, wrong Lean pin, wrong Mathlib pin, blank names, and atomic-write preservation through a mocked exporter failure.
+Also add a fixture test that writes two identical names to a temporary JSONL file and asserts `load_catalog()` raises `ValueError` for duplicate declarations.
 
-- [ ] **Step 2: Run the new tests and verify the intended red state**
+- [ ] **Step 2: Verify red state**
 
 Run:
 
@@ -94,9 +117,9 @@ Run:
 .venv/bin/python -m pytest tests/test_catalog.py -v
 ```
 
-Expected: FAIL because the catalog module/artifact does not exist yet.
+Expected: FAIL because the catalog module and artifact do not exist.
 
-- [ ] **Step 3: Implement a names-only Lean exporter**
+- [ ] **Step 3: Implement the names-only Lean exporter**
 
 Create `lean/SleanExperiment/ExportCatalog.lean` with this behavior:
 
@@ -128,31 +151,31 @@ elab_rules : command
 #slean_export_catalog
 ```
 
-The exact Lean syntax may be adjusted for the pinned APIs, but this file must not call `ppExpr` and must emit every `env.constants` name exactly once.
+Adjust only for pinned Lean API syntax if required. This exporter must not call `ppExpr`, must not sample, and must not consult curated registry data.
 
-- [ ] **Step 4: Implement strict Python catalog models/export**
+- [ ] **Step 4: Implement strict Python catalog models and export**
 
-Create `src/slean_experiment/catalog.py`. Reuse the exact existing pin constants or move the constants from `registry.py` into this module and import them back; do not duplicate divergent values.
+Create `src/slean_experiment/catalog.py`. Move the shared pin constants there and import them from `registry.py` so the repo has one authoritative copy.
 
-`export_catalog()` must:
+`export_catalog()` performs exactly these checks before replacing the destination:
 
-1. verify `lean_root` exists;
-2. invoke `lake env lean SleanExperiment/ExportCatalog.lean` with a practical timeout;
-3. parse every stdout row as `CatalogEntry`;
-4. reject an empty export;
-5. reject duplicate IDs or names;
-6. verify lexical `lean_name` order;
-7. validate exact environment pins;
-8. write to a temporary file;
-9. atomically replace `catalog.jsonl` only after complete validation.
+1. `lean_root` exists;
+2. `lake env lean SleanExperiment/ExportCatalog.lean` exits 0;
+3. every nonblank stdout line validates as `CatalogEntry`;
+4. output is nonempty;
+5. declaration IDs are unique;
+6. Lean names are unique;
+7. names are lexically sorted;
+8. every row has exact pinned Lean/Mathlib provenance.
 
-Do not read curated data to decide which declarations are exported. The catalog is the full environment, independent of Slean semantics.
+Write to a temporary file in the destination directory, then atomically replace the destination.
 
-- [ ] **Step 5: Generate the real full catalog and verify it is cheap**
+- [ ] **Step 5: Generate the real catalog once**
 
-Run a single real export:
+Run:
 
 ```bash
+/usr/bin/time -f 'elapsed=%E cpu=%P maxrss=%MKB' \
 .venv/bin/python - <<'PY'
 from pathlib import Path
 from slean_experiment.catalog import export_catalog
@@ -160,9 +183,9 @@ print(export_catalog(Path("lean"), Path("experiment/registry/catalog.jsonl")))
 PY
 ```
 
-Record wall time and declaration count. The output must contain substantially more than the previous 5,002 rows. If a names-only export is still unexpectedly slow, stop and diagnose before adding type work.
+Record declaration count and wall time. The catalog must contain more than 5,002 rows. If a names-only export is still unexpectedly CPU-bound for many minutes, stop and report the observed command/process rather than adding type work.
 
-- [ ] **Step 6: Run Task 4A and existing fast tests**
+- [ ] **Step 6: Verify Task 4A**
 
 Run:
 
@@ -172,16 +195,16 @@ Run:
 git diff --check
 ```
 
-Expected: all fast tests pass. No real bulk type pretty-printing occurs.
+Expected: all fast tests pass and no bulk type pretty-printing occurs.
 
-- [ ] **Step 7: Commit Task 4A**
+- [ ] **Step 7: Commit**
 
 ```bash
-git add lean/SleanExperiment/ExportCatalog.lean src/slean_experiment/catalog.py experiment/registry/catalog.jsonl tests/test_catalog.py
+git add lean/SleanExperiment/ExportCatalog.lean src/slean_experiment/catalog.py experiment/registry/catalog.jsonl tests/test_catalog.py src/slean_experiment/registry.py
 git commit -m "feat: export full Lean declaration catalog"
 ```
 
-Do not delete the old sampled `mathlib.jsonl` yet; later tasks still reference it until 4C/4D migration is complete.
+Stop after Task 4A.
 
 ---
 
@@ -190,32 +213,49 @@ Do not delete the old sampled `mathlib.jsonl` yet; later tasks still reference i
 **Files:**
 - Create: `lean/SleanExperiment/ResolveDeclaration.lean`
 - Modify: `src/slean_experiment/catalog.py`
-- Create generated/seeded: `experiment/registry/type_cache.jsonl`
+- Create generated: `experiment/registry/type_cache.jsonl`
 - Expand: `tests/test_catalog.py`
 
 **Interfaces:**
-- Produces `ResolvedTypeEntry(lean_name: str, lean_type: str, source: CatalogSource)`.
-- Produces `TypeCache(path: Path)` with `get(lean_name: str) -> ResolvedTypeEntry | None`, `put(entry: ResolvedTypeEntry) -> None`, and deterministic sorted persistence.
-- Produces `DeclarationTypeResolver(lean_root: Path, catalog: tuple[CatalogEntry, ...], cache: TypeCache)`.
-- Produces `DeclarationTypeResolver.resolve(lean_name: str) -> ResolvedTypeEntry`.
-- `resolve()` returns a valid cache hit without launching Lean; otherwise it performs one targeted pinned-Lean resolution, validates it, caches it, and returns it.
-- Task 4C may use cached types for search ranking/content but search must not eagerly resolve types.
+- `ResolvedTypeEntry(lean_name: str, lean_type: str, source: CatalogSource)`
+- `TypeCache(path: Path)`
+- `TypeCache.get(lean_name: str) -> ResolvedTypeEntry | None`
+- `TypeCache.put(entry: ResolvedTypeEntry) -> None`
+- `DeclarationTypeResolver(lean_root: Path, catalog: tuple[CatalogEntry, ...], cache: TypeCache)`
+- `DeclarationTypeResolver.resolve(lean_name: str) -> ResolvedTypeEntry`
 
-- [ ] **Step 1: Write failing cache/resolver tests**
+- [ ] **Step 1: Write failing cache and resolver tests**
 
-Add tests equivalent to:
+Add these concrete fast tests using temporary files and `monkeypatch`:
 
 ```python
-def test_cache_rejects_wrong_environment_pin(tmp_path): ...
-def test_cache_is_sorted_and_deterministic(tmp_path): ...
-def test_resolver_rejects_name_absent_from_catalog(...): ...
-def test_cache_hit_does_not_call_subprocess(...): ...
-def test_failed_resolution_does_not_corrupt_existing_cache(...): ...
+def test_cache_rejects_wrong_environment_pin(tmp_path: Path) -> None:
+    path = tmp_path / "cache.jsonl"
+    path.write_text('{"lean_name":"Nat.Prime","lean_type":"Nat → Prop","source":{"kind":"environment","revision":"wrong","mathlib_revision":"70f3f13433ba3d82a15a7cae679abac9128f102b"}}\n')
+    with pytest.raises(ValueError):
+        TypeCache(path)
+
+
+def test_resolver_rejects_name_absent_from_catalog(tmp_path: Path) -> None:
+    cache = TypeCache(tmp_path / "cache.jsonl")
+    resolver = DeclarationTypeResolver(Path("lean"), tuple(), cache)
+    with pytest.raises(KeyError):
+        resolver.resolve("Does.Not.Exist")
+
+
+def test_cache_hit_skips_subprocess(monkeypatch, tmp_path: Path) -> None:
+    source = CatalogSource(kind="environment", revision=LEAN_ENVIRONMENT_REVISION, mathlib_revision=MATHLIB_REVISION)
+    catalog = (CatalogEntry(id="mathlib.Nat.Prime", lean_name="Nat.Prime", source=source),)
+    cache = TypeCache(tmp_path / "cache.jsonl")
+    cache.put(ResolvedTypeEntry(lean_name="Nat.Prime", lean_type="Nat.Prime (p : Nat) : Prop", source=source))
+    monkeypatch.setattr("subprocess.run", lambda *a, **k: (_ for _ in ()).throw(AssertionError("subprocess should not run")))
+    result = DeclarationTypeResolver(Path("lean"), catalog, cache).resolve("Nat.Prime")
+    assert result.lean_type.startswith("Nat.Prime")
 ```
 
-Use mocks/fixtures for the default fast suite. Add one `@pytest.mark.slow` real integration test resolving an uncached declaration such as `Nat.Prime`, then resolving it again while proving the second read comes from cache.
+Add one test that simulates a resolver failure and asserts the preexisting cache bytes remain unchanged.
 
-- [ ] **Step 2: Run targeted tests and verify red state**
+- [ ] **Step 2: Verify red state**
 
 Run:
 
@@ -223,31 +263,28 @@ Run:
 .venv/bin/python -m pytest tests/test_catalog.py -v
 ```
 
-Expected: FAIL on missing resolver/cache interfaces.
+- [ ] **Step 3: Implement `ResolveDeclaration.lean`**
 
-- [ ] **Step 3: Implement targeted Lean resolution only**
-
-Create `lean/SleanExperiment/ResolveDeclaration.lean` that reads exactly one requested declaration name from an environment variable such as `SLEAN_DECLARATION_NAME`, uses `env.find?`/the pinned equivalent to obtain that constant, calls `ppExpr` only for that declaration's type, and emits one compact JSON row containing `lean_name`, `lean_type`, and exact environment provenance.
-
-If the declaration does not exist, exit nonzero with a clear error. Never fall back to fuzzy lookup.
+The Lean file reads one exact name from `SLEAN_DECLARATION_NAME`, looks it up exactly in the environment, calls `ppExpr` only on that declaration's type, and emits exactly one JSON object with `lean_name`, `lean_type`, and pinned environment provenance. Missing declarations exit nonzero. No fuzzy lookup and no fallback declaration is permitted.
 
 - [ ] **Step 4: Implement deterministic cache and resolver**
 
-`TypeCache.put()` must replace by exact `lean_name`, sort all cache rows by `lean_name`, write through a temporary file, and atomically replace the cache.
+`TypeCache` loads and validates all rows on construction. `put()` replaces by exact Lean name, sorts by Lean name, writes through a temporary file, and atomically replaces the cache.
 
-`DeclarationTypeResolver.resolve()` must:
+`DeclarationTypeResolver.resolve()`:
 
-1. require exact catalog membership;
-2. return a valid exact-pin cache hit immediately;
-3. invoke the targeted Lean resolver only on a miss;
-4. reject wrong-name, wrong-pin, malformed, or blank-type results;
-5. cache only a fully validated result.
+1. verifies exact catalog membership;
+2. returns a valid cache hit immediately;
+3. invokes `lake env lean SleanExperiment/ResolveDeclaration.lean` only on a miss;
+4. passes exactly one `SLEAN_DECLARATION_NAME` environment value;
+5. rejects malformed JSON, wrong name, wrong pin, or blank type;
+6. writes only a fully validated result to cache.
 
-- [ ] **Step 5: Seed only a small reproducible cache**
+- [ ] **Step 5: Add one explicit slow real integration test**
 
-Seed `experiment/registry/type_cache.jsonl` with the curated declaration targets that are useful for current tests, or preserve an even smaller smoke-test set. Do not bulk-resolve the full catalog.
+Mark it `@pytest.mark.slow`. Use a temporary empty cache, resolve `Nat.Prime`, assert the returned type is nonempty and contains `Nat.Prime`, then construct a second resolver with the same cache and verify the cache row is reused.
 
-- [ ] **Step 6: Verify fast and slow behavior separately**
+- [ ] **Step 6: Verify fast and slow suites separately**
 
 Run:
 
@@ -257,14 +294,14 @@ Run:
 git diff --check
 ```
 
-The default suite must remain fast. The slow smoke test should perform only targeted resolution, not thousands of `ppExpr` calls.
-
-- [ ] **Step 7: Commit Task 4B**
+- [ ] **Step 7: Commit**
 
 ```bash
 git add lean/SleanExperiment/ResolveDeclaration.lean src/slean_experiment/catalog.py experiment/registry/type_cache.jsonl tests/test_catalog.py
 git commit -m "feat: add lazy Lean declaration type cache"
 ```
+
+Stop after Task 4B.
 
 ---
 
@@ -273,45 +310,57 @@ git commit -m "feat: add lazy Lean declaration type cache"
 **Files:**
 - Modify: `src/slean_experiment/registry.py`
 - Modify: `tests/test_registry.py`
-- Modify: `tests/test_registry_export.py` or replace obsolete tests with catalog-oriented tests
+- Replace obsolete sampled-export tests in: `tests/test_registry_export.py`
 
 **Interfaces:**
-- `Registry.from_files(curated_path: Path, aliases_path: Path, catalog_path: Path | None = None, type_cache_path: Path | None = None) -> Registry`.
-- `Registry.get(id: str) -> RegistryEntry | CatalogEntry`.
-- `Registry.get_raw(id: str) -> CatalogEntry`.
-- `Registry.search(query: str, limit: int = 20) -> list[RegistryEntry | CatalogEntry]`.
-- Search reads cached types if present but never invokes the resolver and never mutates cache.
-- Curated declaration targets override model-facing raw identity for the same exact Lean name.
+- `Registry.from_files(curated_path: Path, aliases_path: Path, catalog_path: Path | None = None, type_cache_path: Path | None = None) -> Registry`
+- `Registry.get(id: str) -> RegistryEntry | CatalogEntry`
+- `Registry.get_raw(id: str) -> CatalogEntry`
+- `Registry.search(query: str, limit: int = 20) -> list[RegistryEntry | CatalogEntry]`
+- Search may read already-cached type text but never launches Lean and never mutates the cache.
 
-- [ ] **Step 1: Write failing registry integration/search tests**
+- [ ] **Step 1: Write failing search/override tests**
 
-Cover:
+Add explicit assertions:
 
 ```python
-def test_curated_nat_prime_overrides_raw_catalog_identity(): ...
-def test_raw_catalog_entry_remains_inspectable(): ...
-def test_prime_alias_has_exactly_three_curated_meanings(): ...
-def test_search_exact_curated_alias_ranks_first(): ...
-def test_search_exact_lean_name_finds_raw_or_curated_canonical_entry(): ...
-def test_search_is_deterministic(): ...
-def test_search_can_find_uncached_catalog_entry_by_name(): ...
-def test_search_uses_cached_type_text_without_resolving_uncached_types(): ...
-def test_core_forms_are_not_shadowed_by_catalog(): ...
+def test_curated_nat_prime_overrides_raw_identity(registry_with_catalog: Registry) -> None:
+    assert registry_with_catalog.get("mathlib.Nat.Prime").id == "number_theory.nat_prime"
+    assert registry_with_catalog.get_raw("mathlib.Nat.Prime").id == "mathlib.Nat.Prime"
+
+
+def test_prime_alias_still_has_three_curated_meanings(registry_with_catalog: Registry) -> None:
+    assert [entry.id for entry in registry_with_catalog.lookup_alias("prime")] == [
+        "number_theory.nat_prime",
+        "algebra.prime_element",
+        "ring_theory.prime_ideal",
+    ]
+
+
+def test_exact_curated_alias_ranks_first(registry_with_catalog: Registry) -> None:
+    results = registry_with_catalog.search("prime", limit=10)
+    assert results[0].id in {
+        "number_theory.nat_prime",
+        "algebra.prime_element",
+        "ring_theory.prime_ideal",
+    }
+    assert all(result.id != "mathlib.Nat.Prime" for result in results)
+
+
+def test_uncached_raw_name_is_searchable(registry_with_catalog: Registry) -> None:
+    results = registry_with_catalog.search("Polynomial.eval₂", limit=20)
+    assert any(getattr(result, "lean_name", getattr(getattr(result, "target", None), "lean_name", None)) == "Polynomial.eval₂" for result in results)
+
+
+def test_search_is_deterministic(registry_with_catalog: Registry) -> None:
+    first = [entry.id for entry in registry_with_catalog.search("prime", limit=20)]
+    second = [entry.id for entry in registry_with_catalog.search("prime", limit=20)]
+    assert first == second
 ```
 
-Search ranking must be deterministic. Use this precedence unless an equally explicit implementation is simpler and tests preserve the same intent:
+Also add a cached-type fixture containing a unique token and assert search can match that token only when the type is already cached; no resolver is invoked.
 
-1. exact curated alias;
-2. exact curated stable ID or exact curated Lean name;
-3. exact raw ID or exact raw Lean name;
-4. curated ID/name/alias prefix;
-5. raw ID/name prefix or conservative declaration-name token match;
-6. weaker case-insensitive substring/type-cache match;
-7. lexical canonical ID/name tie-break.
-
-Do not create semantic aliases from raw declaration names.
-
-- [ ] **Step 2: Run registry tests and verify red state**
+- [ ] **Step 2: Verify red state**
 
 Run:
 
@@ -319,19 +368,27 @@ Run:
 .venv/bin/python -m pytest tests/test_registry.py tests/test_registry_export.py -v
 ```
 
-- [ ] **Step 3: Migrate registry internals from sampled typed rows to catalog entries**
+- [ ] **Step 3: Migrate registry internals to catalog entries**
 
-Remove `SAMPLE_SIZE`, `select_declaration_names`, the bulk export function, and `RawRegistryEntry` assumptions that every raw declaration has `lean_type`.
+Remove `SAMPLE_SIZE`, `select_declaration_names`, `export_mathlib_registry`, and the assumption that every raw declaration has `lean_type`. Import the catalog and cache models from `catalog.py`.
 
-Import `CatalogEntry`, catalog loading, and optional cached type data from `catalog.py`.
+Construct in-memory indexes once. Preserve current curated alias validation and curated declaration/core-form target models.
 
-Do not put subprocess/type-resolution behavior in `Registry.search()`.
+- [ ] **Step 4: Implement deterministic search ranking**
 
-- [ ] **Step 4: Implement deterministic `Registry.search()`**
+Use these ordered scoring tiers:
 
-Normalize queries with the existing whitespace/casefold policy. Build in-memory indexes once during registry construction. Return curated canonical entries when a raw declaration has a curated override; never return both as competing model-facing results.
+1. exact curated alias;
+2. exact curated stable ID or curated Lean name;
+3. exact raw ID or raw Lean name;
+4. curated alias/ID/name prefix;
+5. raw ID/name prefix or conservative token match derived only from the declaration name;
+6. case-insensitive substring match in curated description or already-cached type text;
+7. lexical canonical ID/name tie-break.
 
-- [ ] **Step 5: Run full fast suite**
+Deduplicate by canonical model-facing identity before applying `limit`. A raw declaration with a curated override never appears as a second competing result.
+
+- [ ] **Step 5: Verify full fast suite**
 
 Run:
 
@@ -340,77 +397,90 @@ Run:
 git diff --check
 ```
 
-Expected: all Task 1-4C fast tests pass with no bulk Lean export.
-
-- [ ] **Step 6: Commit Task 4C**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add src/slean_experiment/registry.py tests/test_registry.py tests/test_registry_export.py
 git commit -m "feat: search full Slean declaration catalog"
 ```
 
+Stop after Task 4C.
+
 ---
 
-### Task 4D: Retire the Sampled Typed Index and Verify the Revised Architecture
+### Task 4D: Retire the Sampled Typed Index and Close Revised Task 4
 
 **Files:**
 - Delete: `lean/SleanExperiment/ExportRegistry.lean`
 - Delete: `experiment/registry/mathlib.jsonl`
-- Modify/remove obsolete sampling tests: `tests/test_registry_export.py`
-- Modify if needed: `experiment/README.md`
-- Verify generated: `experiment/registry/catalog.jsonl`
-- Verify generated: `experiment/registry/type_cache.jsonl`
+- Modify: `tests/test_registry_export.py`
+- Modify: `experiment/README.md`
+- Verify: `experiment/registry/catalog.jsonl`
+- Verify: `experiment/registry/type_cache.jsonl`
 
 **Interfaces:**
-- No new runtime API. This task closes the migration and establishes the revised Task 4 acceptance evidence.
+- No new runtime API; this task completes migration and records acceptance evidence.
 
-- [ ] **Step 1: Add a regression test forbidding legacy sampled-index assumptions**
+- [ ] **Step 1: Add a regression test forbidding legacy assumptions**
 
-Ensure tests fail if production registry code references `SAMPLE_SIZE`, `select_declaration_names`, `ExportRegistry.lean`, or requires every catalog row to contain `lean_type`.
+Add a test that reads production Python/Lean source files and asserts the following strings are absent from production registry/catalog implementation:
 
-- [ ] **Step 2: Delete the obsolete exporter and sampled typed artifact**
+```python
+for forbidden in ("SAMPLE_SIZE", "select_declaration_names", "SLEAN_MANDATORY_NAMES"):
+    assert forbidden not in production_source
+```
 
-Remove `lean/SleanExperiment/ExportRegistry.lean` and `experiment/registry/mathlib.jsonl`. Update tests/docs to refer only to `catalog.jsonl` plus `type_cache.jsonl`.
+Also assert `lean/SleanExperiment/ExportRegistry.lean` and `experiment/registry/mathlib.jsonl` do not exist after migration.
 
-- [ ] **Step 3: Verify the complete committed catalog**
+- [ ] **Step 2: Delete obsolete sampled-index files and update README**
 
-Programmatically report:
+Remove the two legacy files. Update `experiment/README.md` to state that `catalog.jsonl` is the complete name catalog and `type_cache.jsonl` contains only lazily resolved signatures.
 
-- total declaration count;
-- distinct top-level namespaces;
-- lexically first and last declaration names;
-- SHA-256 of `catalog.jsonl`;
-- cached resolved-type count;
-- SHA-256 of `type_cache.jsonl`.
-
-The declaration count must be greater than 5,002 and correspond to the full names emitted by the pinned environment, not a sample.
-
-- [ ] **Step 4: Run final fast verification**
+- [ ] **Step 3: Record deterministic catalog/cache evidence**
 
 Run:
+
+```bash
+.venv/bin/python - <<'PY'
+from pathlib import Path
+import hashlib, json
+catalog = Path("experiment/registry/catalog.jsonl")
+cache = Path("experiment/registry/type_cache.jsonl")
+rows = [json.loads(line) for line in catalog.read_text().splitlines() if line.strip()]
+names = [r["lean_name"] for r in rows]
+cache_rows = [json.loads(line) for line in cache.read_text().splitlines() if line.strip()] if cache.exists() else []
+print("catalog_count", len(rows))
+print("namespaces", len({n.split('.', 1)[0] for n in names}))
+print("first", names[0])
+print("last", names[-1])
+print("catalog_sha256", hashlib.sha256(catalog.read_bytes()).hexdigest())
+print("cache_count", len(cache_rows))
+print("cache_sha256", hashlib.sha256(cache.read_bytes()).hexdigest() if cache.exists() else "missing")
+PY
+```
+
+The catalog count must be greater than 5,002.
+
+- [ ] **Step 4: Run final fast verification**
 
 ```bash
 .venv/bin/python -m pytest -v
 git diff --check
 ```
 
-Expected: all fast tests pass quickly and no bulk type pretty-printing occurs.
-
-- [ ] **Step 5: Run one explicit real integration smoke**
-
-Run only the narrow slow tests:
+- [ ] **Step 5: Run the narrow slow integration smoke**
 
 ```bash
 .venv/bin/python -m pytest -m slow tests/test_catalog.py -v
 ```
 
-This must verify a real uncached targeted declaration type lookup and subsequent cache-hit behavior. It must not perform full-environment type pretty-printing.
+This run resolves only targeted declarations and must not bulk-pretty-print the environment.
 
-- [ ] **Step 6: Commit Task 4D**
+- [ ] **Step 6: Commit**
 
 ```bash
 git add -A lean/SleanExperiment experiment/registry src/slean_experiment tests experiment/README.md
 git commit -m "refactor: retire sampled Mathlib type index"
 ```
 
-After this commit, revised Task 4 is complete. Continue with Task 5 of `docs/superpowers/plans/2026-09-11-sleanir-core-design-experiment.md`; Task 5's compiler should consume exact declaration names from curated entries or catalog entries and must not require a precomputed type merely to render a symbol.
+After Task 4D passes review, continue with Task 5 of `docs/superpowers/plans/2026-09-11-sleanir-core-design-experiment.md`. Task 5 compiles declaration symbols from exact Lean names and does not require a precomputed type merely to render the symbol.
