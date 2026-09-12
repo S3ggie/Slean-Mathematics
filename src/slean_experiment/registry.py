@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 import tempfile
@@ -12,6 +13,8 @@ from pydantic import BaseModel, ConfigDict, Field, StrictStr, ValidationError, f
 
 MATHLIB_REVISION = "70f3f13433ba3d82a15a7cae679abac9128f102b"
 LEAN_REVISION = "v4.34.0-rc2"
+LEAN_ENVIRONMENT_REVISION = "leanprover/lean4:v4.34.0-rc2"
+SAMPLE_SIZE = 5000
 
 
 class StrictModel(BaseModel):
@@ -101,6 +104,8 @@ class RawRegistryEntry(StrictModel):
             raise ValueError("raw registry ID must be mathlib.<Lean.Name>")
         if self.source.mathlib_revision != MATHLIB_REVISION:
             raise ValueError("raw registry row does not use the pinned Mathlib revision")
+        if self.source.revision != LEAN_ENVIRONMENT_REVISION:
+            raise ValueError("raw registry row does not use the pinned Lean environment")
         return self
 
 
@@ -177,12 +182,12 @@ class Registry:
                 raise ValueError("duplicate raw declaration name")
         return cls(entries, aliases, raw_entries)
 
-    def get(self, id: str) -> RegistryEntry:
+    def get(self, id: str) -> RegistryEntry | RawRegistryEntry:
         if id in self._by_id:
             return self._by_id[id]
         if id in self._raw_by_id:
             raw = self._raw_by_id[id]
-            return self._curated_by_name.get(raw.lean_name, raw)  # type: ignore[return-value]
+            return self._curated_by_name.get(raw.lean_name, raw)
         raise KeyError(f"unknown registry ID: {id}")
 
     def get_raw(self, id: str) -> RawRegistryEntry:
@@ -200,10 +205,22 @@ class Registry:
 
 
 def export_mathlib_registry(lean_root: Path, output: Path) -> RegistryExportReport:
+    if not lean_root.is_dir():
+        raise RuntimeError(f"Lean registry export failed: missing Lean root {lean_root}")
     lake = shutil.which("lake") or "/home/seggie/.elan/bin/lake"
+    curated_path = lean_root.parent / "experiment" / "registry" / "curated.json"
+    curated_rows = json.loads(curated_path.read_text())
+    mandatory_names = [
+        row["target"]["lean_name"]
+        for row in curated_rows
+        if row["target"]["target_kind"] == "declaration"
+    ]
     command = [lake, "env", "lean", "SleanExperiment/ExportRegistry.lean"]
     try:
-        completed = subprocess.run(command, cwd=lean_root, text=True, capture_output=True, check=False, timeout=120)
+        completed = subprocess.run(
+            command, cwd=lean_root, text=True, capture_output=True, check=False, timeout=1800,
+            env={**os.environ, "SLEAN_MANDATORY_NAMES": ",".join(mandatory_names)},
+        )
     except (OSError, subprocess.TimeoutExpired) as exc:
         raise RuntimeError(f"Lean registry export failed: {exc}") from exc
     if completed.returncode != 0:
@@ -227,3 +244,13 @@ def export_mathlib_registry(lean_root: Path, output: Path) -> RegistryExportRepo
             temporary.write(json.dumps(row.model_dump(mode="json"), sort_keys=True, separators=(",", ":")) + "\n")
     temporary_path.replace(output)
     return RegistryExportReport(success=True, declaration_count=len(rows), output=output, mathlib_revision=MATHLIB_REVISION)
+
+
+def select_declaration_names(names: list[str], count: int = SAMPLE_SIZE) -> list[str]:
+    """Select lowest stable FNV-1a-ranked names, independent of input iteration order."""
+    def rank(name: str) -> int:
+        value = 2166136261
+        for character in name:
+            value = (value * 16777619 + ord(character)) % (1 << 64)
+        return value
+    return sorted(set(names), key=lambda name: (rank(name), name))[:count]

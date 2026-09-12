@@ -16,3 +16,5 @@ slean-exp = "slean_experiment.cli:app"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+markers = ["slow: runs the pinned Lean exporter"]
+addopts = "-m 'not slow'"
