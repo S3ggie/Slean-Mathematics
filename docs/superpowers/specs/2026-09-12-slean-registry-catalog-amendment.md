@@ -157,7 +157,7 @@ The following operations should be cheap enough for ordinary development:
 - load/validate cached resolved types;
 - resolve a small requested declaration set.
 
-Tests that launch the real pinned Lean environment may be marked as slow integration tests and excluded from the default fast test suite. The fast suite must still test selection, validation, cache invalidation, search ranking, override behavior, and failure handling with fixtures or the committed catalog.
+Tests that launch the real pinned Lean environment may be marked as slow integration tests and excluded from the default fast test suite. The fast suite must still test full-catalog parsing/validation, cache invalidation, deterministic search ranking, curated override behavior, and failure handling with fixtures or the committed catalog.
 
 A slow integration smoke test should verify at least one uncached targeted type lookup against the real pinned environment and then verify a cache hit does not invoke the resolver again.
 
