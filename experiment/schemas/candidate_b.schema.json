@@ -1,207 +1,43 @@
 {
   "$defs": {
-    "And": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "and",
-          "title": "Kind",
-          "type": "string"
-        },
-        "left": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Left"
-        },
-        "right": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Right"
-        },
-        "source_span": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SourceSpan"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "left",
-        "right",
-        "kind"
-      ],
-      "title": "And",
-      "type": "object"
-    },
-    "Apply": {
+    "BApply": {
       "additionalProperties": false,
       "properties": {
         "args": {
           "items": {
             "discriminator": {
               "mapping": {
-                "and": "#/$defs/And",
-                "apply": "#/$defs/Apply",
-                "bind": "#/$defs/Bind",
-                "equals": "#/$defs/Equals",
-                "exists": "#/$defs/Exists",
-                "forall": "#/$defs/Forall",
-                "implies": "#/$defs/Implies",
-                "literal": "#/$defs/LiteralNode",
-                "not": "#/$defs/Not",
-                "or": "#/$defs/Or",
-                "symbol": "#/$defs/Symbol",
-                "var": "#/$defs/Var"
+                "apply": "#/$defs/BApply",
+                "bind": "#/$defs/BBind",
+                "exists": "#/$defs/BExists",
+                "forall": "#/$defs/BForall",
+                "literal": "#/$defs/BLiteral",
+                "symbol": "#/$defs/BSymbol",
+                "var": "#/$defs/BVar"
               },
               "propertyName": "kind"
             },
             "oneOf": [
               {
-                "$ref": "#/$defs/Var"
+                "$ref": "#/$defs/BVar"
               },
               {
-                "$ref": "#/$defs/LiteralNode"
+                "$ref": "#/$defs/BLiteral"
               },
               {
-                "$ref": "#/$defs/Symbol"
+                "$ref": "#/$defs/BSymbol"
               },
               {
-                "$ref": "#/$defs/Apply"
+                "$ref": "#/$defs/BApply"
               },
               {
-                "$ref": "#/$defs/Bind"
+                "$ref": "#/$defs/BBind"
               },
               {
-                "$ref": "#/$defs/Forall"
+                "$ref": "#/$defs/BForall"
               },
               {
-                "$ref": "#/$defs/Exists"
-              },
-              {
-                "$ref": "#/$defs/Implies"
-              },
-              {
-                "$ref": "#/$defs/And"
-              },
-              {
-                "$ref": "#/$defs/Or"
-              },
-              {
-                "$ref": "#/$defs/Not"
-              },
-              {
-                "$ref": "#/$defs/Equals"
+                "$ref": "#/$defs/BExists"
               }
             ]
           },
@@ -211,57 +47,37 @@
         "head": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Head"
@@ -288,66 +104,46 @@
         "head",
         "args"
       ],
-      "title": "Apply",
+      "title": "BApply",
       "type": "object"
     },
-    "Bind": {
+    "BBind": {
       "additionalProperties": false,
       "properties": {
         "binder": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Binder"
@@ -355,57 +151,37 @@
         "body": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Body"
@@ -428,7 +204,7 @@
         },
         "variables": {
           "items": {
-            "$ref": "#/$defs/BoundVariable"
+            "$ref": "#/$defs/BBoundVariable"
           },
           "title": "Variables",
           "type": "array"
@@ -440,10 +216,10 @@
         "variables",
         "body"
       ],
-      "title": "Bind",
+      "title": "BBind",
       "type": "object"
     },
-    "BoundVariable": {
+    "BBoundVariable": {
       "additionalProperties": false,
       "properties": {
         "name": {
@@ -453,57 +229,37 @@
         "type": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Type"
@@ -513,284 +269,46 @@
         "name",
         "type"
       ],
-      "title": "BoundVariable",
+      "title": "BBoundVariable",
       "type": "object"
     },
-    "CandidateBFormalization": {
-      "additionalProperties": false,
-      "properties": {
-        "ir": {
-          "discriminator": {
-            "mapping": {
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "literal": "#/$defs/LiteralNode",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            }
-          ],
-          "title": "Ir"
-        },
-        "outcome": {
-          "const": "formalization",
-          "title": "Outcome",
-          "type": "string"
-        }
-      },
-      "required": [
-        "outcome",
-        "ir"
-      ],
-      "title": "CandidateBFormalization",
-      "type": "object"
-    },
-    "ClarificationRequired": {
-      "additionalProperties": false,
-      "properties": {
-        "issue": {
-          "title": "Issue",
-          "type": "string"
-        },
-        "outcome": {
-          "const": "clarification_required",
-          "title": "Outcome",
-          "type": "string"
-        }
-      },
-      "required": [
-        "outcome",
-        "issue"
-      ],
-      "title": "ClarificationRequired",
-      "type": "object"
-    },
-    "Equals": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "equals",
-          "title": "Kind",
-          "type": "string"
-        },
-        "left": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Left"
-        },
-        "right": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Right"
-        },
-        "source_span": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SourceSpan"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "left",
-        "right",
-        "kind"
-      ],
-      "title": "Equals",
-      "type": "object"
-    },
-    "Exists": {
+    "BExists": {
       "additionalProperties": false,
       "properties": {
         "body": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Body"
@@ -813,7 +331,7 @@
         },
         "variables": {
           "items": {
-            "$ref": "#/$defs/BoundVariable"
+            "$ref": "#/$defs/BBoundVariable"
           },
           "title": "Variables",
           "type": "array"
@@ -824,66 +342,46 @@
         "variables",
         "body"
       ],
-      "title": "Exists",
+      "title": "BExists",
       "type": "object"
     },
-    "Forall": {
+    "BForall": {
       "additionalProperties": false,
       "properties": {
         "body": {
           "discriminator": {
             "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
             },
             "propertyName": "kind"
           },
           "oneOf": [
             {
-              "$ref": "#/$defs/Var"
+              "$ref": "#/$defs/BVar"
             },
             {
-              "$ref": "#/$defs/LiteralNode"
+              "$ref": "#/$defs/BLiteral"
             },
             {
-              "$ref": "#/$defs/Symbol"
+              "$ref": "#/$defs/BSymbol"
             },
             {
-              "$ref": "#/$defs/Apply"
+              "$ref": "#/$defs/BApply"
             },
             {
-              "$ref": "#/$defs/Bind"
+              "$ref": "#/$defs/BBind"
             },
             {
-              "$ref": "#/$defs/Forall"
+              "$ref": "#/$defs/BForall"
             },
             {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
+              "$ref": "#/$defs/BExists"
             }
           ],
           "title": "Body"
@@ -906,7 +404,7 @@
         },
         "variables": {
           "items": {
-            "$ref": "#/$defs/BoundVariable"
+            "$ref": "#/$defs/BBoundVariable"
           },
           "title": "Variables",
           "type": "array"
@@ -917,154 +415,10 @@
         "variables",
         "body"
       ],
-      "title": "Forall",
+      "title": "BForall",
       "type": "object"
     },
-    "Implies": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "implies",
-          "title": "Kind",
-          "type": "string"
-        },
-        "left": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Left"
-        },
-        "right": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Right"
-        },
-        "source_span": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SourceSpan"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "left",
-        "right",
-        "kind"
-      ],
-      "title": "Implies",
-      "type": "object"
-    },
-    "LiteralNode": {
+    "BLiteral": {
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -1105,260 +459,10 @@
         "kind",
         "value"
       ],
-      "title": "LiteralNode",
+      "title": "BLiteral",
       "type": "object"
     },
-    "Not": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "not",
-          "title": "Kind",
-          "type": "string"
-        },
-        "source_span": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SourceSpan"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        },
-        "value": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Value"
-        }
-      },
-      "required": [
-        "kind",
-        "value"
-      ],
-      "title": "Not",
-      "type": "object"
-    },
-    "Or": {
-      "additionalProperties": false,
-      "properties": {
-        "kind": {
-          "const": "or",
-          "title": "Kind",
-          "type": "string"
-        },
-        "left": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Left"
-        },
-        "right": {
-          "discriminator": {
-            "mapping": {
-              "and": "#/$defs/And",
-              "apply": "#/$defs/Apply",
-              "bind": "#/$defs/Bind",
-              "equals": "#/$defs/Equals",
-              "exists": "#/$defs/Exists",
-              "forall": "#/$defs/Forall",
-              "implies": "#/$defs/Implies",
-              "literal": "#/$defs/LiteralNode",
-              "not": "#/$defs/Not",
-              "or": "#/$defs/Or",
-              "symbol": "#/$defs/Symbol",
-              "var": "#/$defs/Var"
-            },
-            "propertyName": "kind"
-          },
-          "oneOf": [
-            {
-              "$ref": "#/$defs/Var"
-            },
-            {
-              "$ref": "#/$defs/LiteralNode"
-            },
-            {
-              "$ref": "#/$defs/Symbol"
-            },
-            {
-              "$ref": "#/$defs/Apply"
-            },
-            {
-              "$ref": "#/$defs/Bind"
-            },
-            {
-              "$ref": "#/$defs/Forall"
-            },
-            {
-              "$ref": "#/$defs/Exists"
-            },
-            {
-              "$ref": "#/$defs/Implies"
-            },
-            {
-              "$ref": "#/$defs/And"
-            },
-            {
-              "$ref": "#/$defs/Or"
-            },
-            {
-              "$ref": "#/$defs/Not"
-            },
-            {
-              "$ref": "#/$defs/Equals"
-            }
-          ],
-          "title": "Right"
-        },
-        "source_span": {
-          "anyOf": [
-            {
-              "$ref": "#/$defs/SourceSpan"
-            },
-            {
-              "type": "null"
-            }
-          ],
-          "default": null
-        }
-      },
-      "required": [
-        "left",
-        "right",
-        "kind"
-      ],
-      "title": "Or",
-      "type": "object"
-    },
-    "SourceSpan": {
-      "additionalProperties": false,
-      "properties": {
-        "end": {
-          "minimum": 0,
-          "title": "End",
-          "type": "integer"
-        },
-        "start": {
-          "minimum": 0,
-          "title": "Start",
-          "type": "integer"
-        }
-      },
-      "required": [
-        "start",
-        "end"
-      ],
-      "title": "SourceSpan",
-      "type": "object"
-    },
-    "Symbol": {
+    "BSymbol": {
       "additionalProperties": false,
       "properties": {
         "id": {
@@ -1386,10 +490,10 @@
         "kind",
         "id"
       ],
-      "title": "Symbol",
+      "title": "BSymbol",
       "type": "object"
     },
-    "Var": {
+    "BVar": {
       "additionalProperties": false,
       "properties": {
         "kind": {
@@ -1417,7 +521,102 @@
         "kind",
         "name"
       ],
-      "title": "Var",
+      "title": "BVar",
+      "type": "object"
+    },
+    "CandidateBFormalization": {
+      "additionalProperties": false,
+      "properties": {
+        "ir": {
+          "discriminator": {
+            "mapping": {
+              "apply": "#/$defs/BApply",
+              "bind": "#/$defs/BBind",
+              "exists": "#/$defs/BExists",
+              "forall": "#/$defs/BForall",
+              "literal": "#/$defs/BLiteral",
+              "symbol": "#/$defs/BSymbol",
+              "var": "#/$defs/BVar"
+            },
+            "propertyName": "kind"
+          },
+          "oneOf": [
+            {
+              "$ref": "#/$defs/BVar"
+            },
+            {
+              "$ref": "#/$defs/BLiteral"
+            },
+            {
+              "$ref": "#/$defs/BSymbol"
+            },
+            {
+              "$ref": "#/$defs/BApply"
+            },
+            {
+              "$ref": "#/$defs/BBind"
+            },
+            {
+              "$ref": "#/$defs/BForall"
+            },
+            {
+              "$ref": "#/$defs/BExists"
+            }
+          ],
+          "title": "Ir"
+        },
+        "outcome": {
+          "const": "formalization",
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "ir"
+      ],
+      "title": "CandidateBFormalization",
+      "type": "object"
+    },
+    "ClarificationRequired": {
+      "additionalProperties": false,
+      "properties": {
+        "issue": {
+          "title": "Issue",
+          "type": "string"
+        },
+        "outcome": {
+          "const": "clarification_required",
+          "title": "Outcome",
+          "type": "string"
+        }
+      },
+      "required": [
+        "outcome",
+        "issue"
+      ],
+      "title": "ClarificationRequired",
+      "type": "object"
+    },
+    "SourceSpan": {
+      "additionalProperties": false,
+      "properties": {
+        "end": {
+          "minimum": 0,
+          "title": "End",
+          "type": "integer"
+        },
+        "start": {
+          "minimum": 0,
+          "title": "Start",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "start",
+        "end"
+      ],
+      "title": "SourceSpan",
       "type": "object"
     }
   },

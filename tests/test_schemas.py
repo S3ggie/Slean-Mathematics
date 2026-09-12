@@ -1,9 +1,32 @@
+import json
 from pathlib import Path
 
 import pytest
 from pydantic import ValidationError
 
 from slean_experiment.schemas import validate_result, write_json_schemas
+
+
+def _advertised_node_kinds(schema_path: Path) -> set[str]:
+    schema = json.loads(schema_path.read_text())
+    kinds: set[str] = set()
+
+    def visit(value: object) -> None:
+        if isinstance(value, dict):
+            if "kind" in value and isinstance(value["kind"], dict):
+                kind_schema = value["kind"]
+                if isinstance(kind_schema.get("const"), str):
+                    kinds.add(kind_schema["const"])
+                if isinstance(kind_schema.get("enum"), list):
+                    kinds.update(item for item in kind_schema["enum"] if isinstance(item, str))
+            for child in value.values():
+                visit(child)
+        elif isinstance(value, list):
+            for child in value:
+                visit(child)
+
+    visit(schema)
+    return kinds
 
 
 def test_direct_accepts_formalization() -> None:
@@ -140,3 +163,41 @@ def test_schema_export_has_exact_filenames_and_is_repeatable(tmp_path: Path) -> 
         "candidate_c.schema.json", "direct.schema.json",
     }
     assert first == second
+
+
+def test_exported_candidate_a_schema_has_only_a_node_kinds(tmp_path: Path) -> None:
+    write_json_schemas(tmp_path)
+    assert _advertised_node_kinds(tmp_path / "candidate_a.schema.json") <= {
+        "var", "literal", "symbol", "apply", "bind",
+    }
+
+
+def test_exported_candidate_b_schema_has_only_b_node_kinds(tmp_path: Path) -> None:
+    write_json_schemas(tmp_path)
+    assert _advertised_node_kinds(tmp_path / "candidate_b.schema.json") <= {
+        "var", "literal", "symbol", "apply", "bind", "forall", "exists",
+    }
+
+
+def test_exported_candidate_c_schema_has_all_c_node_kinds(tmp_path: Path) -> None:
+    write_json_schemas(tmp_path)
+    assert _advertised_node_kinds(tmp_path / "candidate_c.schema.json") == {
+        "var", "literal", "symbol", "apply", "bind", "forall", "exists",
+        "implies", "and", "or", "not", "equals",
+    }
+
+
+def test_deeply_nested_candidate_a_and_b_structures_validate() -> None:
+    nested_a = {"kind": "symbol", "id": "leaf"}
+    for _ in range(4):
+        nested_a = {"kind": "apply", "head": {"kind": "symbol", "id": "f"}, "args": [nested_a]}
+    assert validate_result("a", {"outcome": "formalization", "ir": nested_a}).outcome == "formalization"
+
+    nested_b = {"kind": "symbol", "id": "True"}
+    for _ in range(3):
+        nested_b = {
+            "kind": "forall",
+            "variables": [{"name": "n", "type": {"kind": "symbol", "id": "Nat"}}],
+            "body": nested_b,
+        }
+    assert validate_result("b", {"outcome": "formalization", "ir": nested_b}).outcome == "formalization"

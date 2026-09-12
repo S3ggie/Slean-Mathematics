@@ -21,108 +21,202 @@ class SourceSpan(StrictModel):
         return self
 
 
-class Var(StrictModel):
+Scalar: TypeAlias = StrictStr | StrictInt | StrictFloat | StrictBool
+
+
+class AVar(StrictModel):
     kind: Literal["var"]
     name: StrictStr
     source_span: SourceSpan | None = None
 
 
-class LiteralNode(StrictModel):
+class ALiteral(StrictModel):
     kind: Literal["literal"]
-    value: StrictStr | StrictInt | StrictFloat | StrictBool
+    value: Scalar
     source_span: SourceSpan | None = None
 
 
-class Symbol(StrictModel):
+class ASymbol(StrictModel):
     kind: Literal["symbol"]
     id: StrictStr
     source_span: SourceSpan | None = None
 
 
-class BoundVariable(StrictModel):
+class ABoundVariable(StrictModel):
     name: StrictStr
-    type: Expr
+    type: AExpr
 
 
-class Apply(StrictModel):
+class AApply(StrictModel):
     kind: Literal["apply"]
-    head: Expr
-    args: list[Expr]
+    head: AExpr
+    args: list[AExpr]
     source_span: SourceSpan | None = None
 
 
-class Bind(StrictModel):
+class ABind(StrictModel):
     kind: Literal["bind"]
-    binder: Expr
-    variables: list[BoundVariable]
-    body: Expr
+    binder: AExpr
+    variables: list[ABoundVariable]
+    body: AExpr
     source_span: SourceSpan | None = None
 
 
-class Forall(StrictModel):
+AExpr: TypeAlias = Annotated[Union[AVar, ALiteral, ASymbol, AApply, ABind], Field(discriminator="kind")]
+
+
+class BVar(StrictModel):
+    kind: Literal["var"]
+    name: StrictStr
+    source_span: SourceSpan | None = None
+
+
+class BLiteral(StrictModel):
+    kind: Literal["literal"]
+    value: Scalar
+    source_span: SourceSpan | None = None
+
+
+class BSymbol(StrictModel):
+    kind: Literal["symbol"]
+    id: StrictStr
+    source_span: SourceSpan | None = None
+
+
+class BBoundVariable(StrictModel):
+    name: StrictStr
+    type: BExpr
+
+
+class BApply(StrictModel):
+    kind: Literal["apply"]
+    head: BExpr
+    args: list[BExpr]
+    source_span: SourceSpan | None = None
+
+
+class BBind(StrictModel):
+    kind: Literal["bind"]
+    binder: BExpr
+    variables: list[BBoundVariable]
+    body: BExpr
+    source_span: SourceSpan | None = None
+
+
+class BForall(StrictModel):
     kind: Literal["forall"]
-    variables: list[BoundVariable]
-    body: Expr
+    variables: list[BBoundVariable]
+    body: BExpr
     source_span: SourceSpan | None = None
 
 
-class Exists(StrictModel):
+class BExists(StrictModel):
     kind: Literal["exists"]
-    variables: list[BoundVariable]
-    body: Expr
+    variables: list[BBoundVariable]
+    body: BExpr
     source_span: SourceSpan | None = None
 
 
-class BinaryLogic(StrictModel):
-    left: Expr
-    right: Expr
-    source_span: SourceSpan | None = None
-
-
-class Implies(BinaryLogic):
-    kind: Literal["implies"]
-
-
-class And(BinaryLogic):
-    kind: Literal["and"]
-
-
-class Or(BinaryLogic):
-    kind: Literal["or"]
-
-
-class Not(StrictModel):
-    kind: Literal["not"]
-    value: Expr
-    source_span: SourceSpan | None = None
-
-
-class Equals(BinaryLogic):
-    kind: Literal["equals"]
-
-
-Expr: TypeAlias = Annotated[
-    Union[Var, LiteralNode, Symbol, Apply, Bind, Forall, Exists, Implies, And, Or, Not, Equals],
+BExpr: TypeAlias = Annotated[
+    Union[BVar, BLiteral, BSymbol, BApply, BBind, BForall, BExists],
     Field(discriminator="kind"),
 ]
 
-for _model in (BoundVariable, Apply, Bind, Forall, Exists, BinaryLogic, Implies, And, Or, Not, Equals):
+
+class CVar(StrictModel):
+    kind: Literal["var"]
+    name: StrictStr
+    source_span: SourceSpan | None = None
+
+
+class CLiteral(StrictModel):
+    kind: Literal["literal"]
+    value: Scalar
+    source_span: SourceSpan | None = None
+
+
+class CSymbol(StrictModel):
+    kind: Literal["symbol"]
+    id: StrictStr
+    source_span: SourceSpan | None = None
+
+
+class CBoundVariable(StrictModel):
+    name: StrictStr
+    type: CExpr
+
+
+class CApply(StrictModel):
+    kind: Literal["apply"]
+    head: CExpr
+    args: list[CExpr]
+    source_span: SourceSpan | None = None
+
+
+class CBind(StrictModel):
+    kind: Literal["bind"]
+    binder: CExpr
+    variables: list[CBoundVariable]
+    body: CExpr
+    source_span: SourceSpan | None = None
+
+
+class CForall(StrictModel):
+    kind: Literal["forall"]
+    variables: list[CBoundVariable]
+    body: CExpr
+    source_span: SourceSpan | None = None
+
+
+class CExists(StrictModel):
+    kind: Literal["exists"]
+    variables: list[CBoundVariable]
+    body: CExpr
+    source_span: SourceSpan | None = None
+
+
+class CBinary(StrictModel):
+    left: CExpr
+    right: CExpr
+    source_span: SourceSpan | None = None
+
+
+class CImplies(CBinary):
+    kind: Literal["implies"]
+
+
+class CAnd(CBinary):
+    kind: Literal["and"]
+
+
+class COr(CBinary):
+    kind: Literal["or"]
+
+
+class CNot(StrictModel):
+    kind: Literal["not"]
+    value: CExpr
+    source_span: SourceSpan | None = None
+
+
+class CEquals(CBinary):
+    kind: Literal["equals"]
+
+
+CExpr: TypeAlias = Annotated[
+    Union[CVar, CLiteral, CSymbol, CApply, CBind, CForall, CExists,
+          CImplies, CAnd, COr, CNot, CEquals],
+    Field(discriminator="kind"),
+]
+
+
+for _model in (
+    ABoundVariable, AApply, ABind,
+    BBoundVariable, BApply, BBind, BForall, BExists,
+    CBoundVariable, CApply, CBind, CForall, CExists, CBinary,
+    CImplies, CAnd, COr, CNot, CEquals,
+):
     _model.model_rebuild()
-
-
-class CandidateAExpr(StrictModel):
-    root: Annotated[Union[Var, LiteralNode, Symbol, Apply, Bind], Field(discriminator="kind")]
-
-
-class CandidateBExpr(StrictModel):
-    root: Annotated[Union[Var, LiteralNode, Symbol, Apply, Bind, Forall, Exists], Field(discriminator="kind")]
-
-
-class CandidateCExpr(StrictModel):
-    root: Annotated[
-        Union[Var, LiteralNode, Symbol, Apply, Bind, Forall, Exists, Implies, And, Or, Not, Equals],
-        Field(discriminator="kind"),
-    ]
 
 
 class FormalizationBase(StrictModel):
@@ -135,28 +229,15 @@ class ClarificationRequired(StrictModel):
 
 
 class CandidateAFormalization(FormalizationBase):
-    ir: Annotated[Union[Var, LiteralNode, Symbol, Apply, Bind], Field(discriminator="kind")]
-
-    @model_validator(mode="after")
-    def reject_extended_nodes(self) -> CandidateAFormalization:
-        _ensure_allowed_kinds(self.ir, {"var", "literal", "symbol", "apply", "bind"})
-        return self
+    ir: AExpr
 
 
 class CandidateBFormalization(FormalizationBase):
-    ir: Annotated[Union[Var, LiteralNode, Symbol, Apply, Bind, Forall, Exists], Field(discriminator="kind")]
-
-    @model_validator(mode="after")
-    def reject_logic_nodes(self) -> CandidateBFormalization:
-        _ensure_allowed_kinds(self.ir, {"var", "literal", "symbol", "apply", "bind", "forall", "exists"})
-        return self
+    ir: BExpr
 
 
 class CandidateCFormalization(FormalizationBase):
-    ir: Annotated[
-        Union[Var, LiteralNode, Symbol, Apply, Bind, Forall, Exists, Implies, And, Or, Not, Equals],
-        Field(discriminator="kind"),
-    ]
+    ir: CExpr
 
 
 class DirectFormalization(FormalizationBase):
@@ -164,21 +245,6 @@ class DirectFormalization(FormalizationBase):
 
 
 Result: TypeAlias = Union[
-    CandidateAFormalization,
-    CandidateBFormalization,
-    CandidateCFormalization,
-    DirectFormalization,
-    ClarificationRequired,
+    CandidateAFormalization, CandidateBFormalization, CandidateCFormalization,
+    DirectFormalization, ClarificationRequired,
 ]
-
-
-def _ensure_allowed_kinds(value: object, allowed: set[str]) -> None:
-    if isinstance(value, StrictModel):
-        kind = getattr(value, "kind", None)
-        if kind is not None and kind not in allowed:
-            raise ValueError(f"node kind {kind!r} is not allowed in this candidate")
-        for child in value.__dict__.values():
-            _ensure_allowed_kinds(child, allowed)
-    elif isinstance(value, list):
-        for child in value:
-            _ensure_allowed_kinds(child, allowed)
