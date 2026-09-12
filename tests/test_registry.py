@@ -25,8 +25,9 @@ def test_prime_alias_keeps_distinct_meanings(registry: Registry) -> None:
 
 def test_get_exact_entry(registry: Registry) -> None:
     entry = registry.get("number_theory.nat_prime")
-    assert entry.lean_name == "Nat.Prime"
-    assert entry.lean_type
+    assert entry.target.target_kind == "declaration"
+    assert entry.target.lean_name == "Nat.Prime"
+    assert entry.lean_type == "Nat.Prime (p : ℕ) : Prop"
 
 
 def test_alias_lookup_normalizes_case_and_whitespace(registry: Registry) -> None:
@@ -47,6 +48,43 @@ def test_prime_concepts_retain_distinct_types_and_constraints(registry: Registry
     assert len({json.dumps(e.constraints, sort_keys=True) for e in entries.values()}) == 3
 
 
+def test_verified_structural_constraints(registry: Registry) -> None:
+    assert registry.get("algebra.prime_element").constraints == ["[CommMonoidWithZero M]"]
+    assert registry.get("ring_theory.prime_ideal").constraints == ["[Semiring α]"]
+    assert registry.get("algebra.even").constraints == ["[Add α]"]
+    assert registry.get("algebra.odd").constraints == ["[Semiring α]"]
+
+
+@pytest.mark.parametrize("entry_id, core_form", [
+    ("logic.forall", "forall"), ("logic.implies", "implies"), ("logic.exists", "exists"),
+])
+def test_core_forms_are_not_fake_declarations(registry: Registry, entry_id: str, core_form: str) -> None:
+    target = registry.get(entry_id).target
+    assert target.target_kind == "core_form"
+    assert target.core_form == core_form
+    assert not hasattr(target, "lean_name")
+
+
+def test_provenance_distinguishes_lean_and_mathlib(registry: Registry) -> None:
+    assert registry.get("number_theory.nat_prime").source.kind == "mathlib"
+    assert registry.get("logic.forall").source.kind == "lean"
+    assert registry.get("logic.forall").source.revision == "v4.34.0-rc2"
+
+
+def test_nonempty_signatures_and_declaration_names_are_required(registry: Registry) -> None:
+    for entry in registry.entries:
+        assert entry.lean_type.strip()
+        if entry.target.target_kind == "declaration":
+            assert entry.target.lean_name.strip()
+
+
+def test_duplicate_normalized_aliases_are_rejected(tmp_path: Path) -> None:
+    entry = _valid_entry()
+    curated, aliases = _write_overlay(tmp_path, [entry], {"Test": ["test.one"], " test ": ["test.one"]})
+    with pytest.raises(ValueError):
+        Registry.from_files(curated, aliases)
+
+
 def _write_overlay(tmp_path: Path, entries: list[dict[str, object]], aliases: dict[str, list[str]] | None = None) -> tuple[Path, Path]:
     curated = tmp_path / "curated.json"
     alias_file = tmp_path / "aliases.json"
@@ -58,11 +96,11 @@ def _write_overlay(tmp_path: Path, entries: list[dict[str, object]], aliases: di
 def _valid_entry(**overrides: object) -> dict[str, object]:
     entry: dict[str, object] = {
         "id": "test.one",
-        "lean_name": "Test.one",
         "lean_type": "Nat",
         "constraints": [],
         "description": "A test entry.",
         "aliases": ["test"],
+        "target": {"target_kind": "declaration", "lean_name": "Test.one"},
         "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"},
     }
     entry.update(overrides)

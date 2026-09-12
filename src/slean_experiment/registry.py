@@ -2,12 +2,13 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import Literal
+from typing import Annotated, Literal, TypeAlias, Union
 
-from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator, model_validator
 
 
 MATHLIB_REVISION = "70f3f13433ba3d82a15a7cae679abac9128f102b"
+LEAN_REVISION = "v4.34.0-rc2"
 
 
 class StrictModel(BaseModel):
@@ -15,7 +16,7 @@ class StrictModel(BaseModel):
 
 
 class SourceProvenance(StrictModel):
-    kind: Literal["mathlib"]
+    kind: Literal["mathlib", "lean"]
     revision: StrictStr
 
     @field_validator("revision")
@@ -26,21 +27,50 @@ class SourceProvenance(StrictModel):
         return value
 
 
+class DeclarationTarget(StrictModel):
+    target_kind: Literal["declaration"]
+    lean_name: StrictStr
+
+    @field_validator("lean_name")
+    @classmethod
+    def nonempty_name(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("declaration target name must not be empty")
+        return value
+
+
+class CoreFormTarget(StrictModel):
+    target_kind: Literal["core_form"]
+    core_form: Literal["forall", "exists", "implies"]
+
+
+Target: TypeAlias = Annotated[Union[DeclarationTarget, CoreFormTarget], Field(discriminator="target_kind")]
+
+
 class RegistryEntry(StrictModel):
     id: StrictStr
-    lean_name: StrictStr
     lean_type: StrictStr
+    target: Target
     constraints: list[StrictStr]
     description: StrictStr
     aliases: list[StrictStr]
     source: SourceProvenance
 
-    @field_validator("id", "lean_name", "description")
+    @field_validator("id", "lean_type", "description")
     @classmethod
     def nonempty_text(cls, value: str) -> str:
         if not value.strip():
             raise ValueError("registry text fields must not be empty")
         return value
+
+    @model_validator(mode="after")
+    def validate_target_and_source(self) -> RegistryEntry:
+        if self.target.target_kind == "core_form" and self.source.kind != "lean":
+            raise ValueError("core-form targets must use Lean provenance")
+        expected = LEAN_REVISION if self.source.kind == "lean" else MATHLIB_REVISION
+        if self.source.revision != expected:
+            raise ValueError(f"entry {self.id} does not use the pinned {self.source.kind} revision")
+        return self
 
 
 class Registry:
@@ -50,18 +80,19 @@ class Registry:
         for entry in entries:
             if entry.id in by_id:
                 raise ValueError(f"duplicate registry ID: {entry.id}")
-            if entry.lean_name in by_lean_name:
-                raise ValueError(f"duplicate Lean target: {entry.lean_name}")
-            if entry.source.revision != MATHLIB_REVISION:
-                raise ValueError(f"entry {entry.id} is not from the pinned Mathlib revision")
             by_id[entry.id] = entry
-            by_lean_name[entry.lean_name] = entry
+            if entry.target.target_kind == "declaration":
+                if entry.target.lean_name in by_lean_name:
+                    raise ValueError(f"duplicate Lean target: {entry.target.lean_name}")
+                by_lean_name[entry.target.lean_name] = entry
 
         normalized_aliases: dict[str, list[str]] = {}
         for alias, ids in aliases.items():
             key = self._normalize(alias)
             if not key:
                 raise ValueError("aliases must not be empty")
+            if key in normalized_aliases:
+                raise ValueError(f"duplicate normalized alias: {alias}")
             if len(ids) != len(set(ids)):
                 raise ValueError(f"duplicate IDs for alias: {alias}")
             for entry_id in ids:

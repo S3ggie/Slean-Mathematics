@@ -1,23 +1,405 @@
 [
-  {"id": "algebra.add", "lean_name": "HAdd.hAdd", "lean_type": "?m → ?m → ?m", "constraints": ["HAdd ?m ?m ?m"], "description": "Addition in the ambient additive structure.", "aliases": ["addition", "add"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "algebra.even", "lean_name": "Even", "lean_type": "∀ a, Prop", "constraints": ["a has multiplication by natural numerals"], "description": "A value divisible by two.", "aliases": ["even"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "algebra.multiply", "lean_name": "HMul.hMul", "lean_type": "?m → ?m → ?m", "constraints": ["HMul ?m ?m ?m"], "description": "Multiplication in the ambient multiplicative structure.", "aliases": ["multiplication", "multiply", "times"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "algebra.odd", "lean_name": "Odd", "lean_type": "∀ a, Prop", "constraints": ["a has multiplication by natural numerals"], "description": "A value one more than a value divisible by two.", "aliases": ["odd"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "algebra.power", "lean_name": "HPow.hPow", "lean_type": "?m → ?n → ?k", "constraints": ["HPow ?m ?n ?k"], "description": "Exponentiation in the ambient power structure.", "aliases": ["power", "exponentiation"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "algebra.prime_element", "lean_name": "Prime", "lean_type": "∀ a, Prop", "constraints": ["a is an element of a cancel commutative monoid"], "description": "Being a prime element in an algebraic structure.", "aliases": ["prime", "prime element"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.and", "lean_name": "And", "lean_type": "Prop → Prop → Prop", "constraints": [], "description": "Logical conjunction.", "aliases": ["and", "conjunction"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.equality", "lean_name": "Eq", "lean_type": "∀ {α}, α → α → Prop", "constraints": [], "description": "Equality of two terms of the same type.", "aliases": ["equality", "equals", "equal to"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.exists", "lean_name": "Exists", "lean_type": "(α → Prop) → Prop", "constraints": [], "description": "Existential quantification.", "aliases": ["exists", "there exists"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.forall", "lean_name": "Forall", "lean_type": "(α → Prop) → Prop", "constraints": [], "description": "Universal quantification.", "aliases": ["forall", "for all", "every"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.implies", "lean_name": "implies", "lean_type": "Prop → Prop → Prop", "constraints": [], "description": "Logical implication.", "aliases": ["implies", "if then"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.not", "lean_name": "Not", "lean_type": "Prop → Prop", "constraints": [], "description": "Logical negation.", "aliases": ["not", "negation"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "logic.or", "lean_name": "Or", "lean_type": "Prop → Prop → Prop", "constraints": [], "description": "Logical disjunction.", "aliases": ["or", "disjunction"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "number_theory.nat_prime", "lean_name": "Nat.Prime", "lean_type": "Nat → Prop", "constraints": ["argument has type Nat"], "description": "Primality of a natural number.", "aliases": ["prime", "natural prime", "prime natural number"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "ring_theory.prime_ideal", "lean_name": "Ideal.IsPrime", "lean_type": "Ideal R → Prop", "constraints": ["R is a commutative ring"], "description": "An ideal is prime in a commutative ring.", "aliases": ["prime", "prime ideal"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "type.nat", "lean_name": "Nat", "lean_type": "Type", "constraints": [], "description": "The natural numbers.", "aliases": ["nat", "natural numbers", "natural number"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "type.int", "lean_name": "Int", "lean_type": "Type", "constraints": [], "description": "The integers.", "aliases": ["int", "integers", "integer"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "type.rat", "lean_name": "Rat", "lean_type": "Type", "constraints": [], "description": "The rational numbers.", "aliases": ["rat", "rationals", "rational number"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "type.real", "lean_name": "Real", "lean_type": "Type", "constraints": [], "description": "The real numbers.", "aliases": ["real", "reals", "real number"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "relation.lt", "lean_name": "LT.lt", "lean_type": "?m → ?m → Prop", "constraints": ["LT ?m"], "description": "Strict less-than relation.", "aliases": ["<", "less than"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}},
-  {"id": "relation.le", "lean_name": "LE.le", "lean_type": "?m → ?m → Prop", "constraints": ["LE ?m"], "description": "Less-than-or-equal relation.", "aliases": ["≤", "less than or equal", "at most"], "source": {"kind": "mathlib", "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"}}
+  {
+    "id": "algebra.add",
+    "lean_type": "HAdd.hAdd {α : Type u} {β : Type v} {γ : outParam (Type w)} [HAdd α β γ] : α → β → γ",
+    "constraints": [
+      "[HAdd α β γ]"
+    ],
+    "description": "Addition in the ambient additive structure.",
+    "aliases": [
+      "addition",
+      "add"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "HAdd.hAdd"
+    }
+  },
+  {
+    "id": "algebra.even",
+    "lean_type": "Even {α : Type u} [Add α] (a : α) : Prop",
+    "constraints": [
+      "[Add α]"
+    ],
+    "description": "A value divisible by two.",
+    "aliases": [
+      "even"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Even"
+    }
+  },
+  {
+    "id": "algebra.multiply",
+    "lean_type": "HMul.hMul {α : Type u} {β : Type v} {γ : outParam (Type w)} [HMul α β γ] : α → β → γ",
+    "constraints": [
+      "[HMul α β γ]"
+    ],
+    "description": "Multiplication in the ambient multiplicative structure.",
+    "aliases": [
+      "multiplication",
+      "multiply",
+      "times"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "HMul.hMul"
+    }
+  },
+  {
+    "id": "algebra.odd",
+    "lean_type": "Odd {α : Type u} [Semiring α] (a : α) : Prop",
+    "constraints": [
+      "[Semiring α]"
+    ],
+    "description": "A value one more than a value divisible by two.",
+    "aliases": [
+      "odd"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Odd"
+    }
+  },
+  {
+    "id": "algebra.power",
+    "lean_type": "HPow.hPow {α : Type u} {β : Type v} {γ : outParam (Type w)} [HPow α β γ] : α → β → γ",
+    "constraints": [
+      "[HPow α β γ]"
+    ],
+    "description": "Exponentiation in the ambient power structure.",
+    "aliases": [
+      "power",
+      "exponentiation"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "HPow.hPow"
+    }
+  },
+  {
+    "id": "algebra.prime_element",
+    "lean_type": "Prime {M : Type u} [CommMonoidWithZero M] (p : M) : Prop",
+    "constraints": [
+      "[CommMonoidWithZero M]"
+    ],
+    "description": "Being a prime element in an algebraic structure.",
+    "aliases": [
+      "prime",
+      "prime element"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Prime"
+    }
+  },
+  {
+    "id": "logic.and",
+    "lean_type": "And (a b : Prop) : Prop",
+    "constraints": [],
+    "description": "Logical conjunction.",
+    "aliases": [
+      "and",
+      "conjunction"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "And"
+    }
+  },
+  {
+    "id": "logic.equality",
+    "lean_type": "Eq {α : Sort u} : α → α → Prop",
+    "constraints": [],
+    "description": "Equality of two terms of the same type.",
+    "aliases": [
+      "equality",
+      "equals",
+      "equal to"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Eq"
+    }
+  },
+  {
+    "id": "logic.exists",
+    "lean_type": "∀ {α : Sort u}, (α → Prop) → Prop",
+    "constraints": [],
+    "description": "Existential quantification.",
+    "aliases": [
+      "exists",
+      "there exists"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "core_form",
+      "core_form": "exists"
+    }
+  },
+  {
+    "id": "logic.forall",
+    "lean_type": "∀ {α : Sort u}, (α → Prop) → Prop",
+    "constraints": [],
+    "description": "Universal quantification.",
+    "aliases": [
+      "forall",
+      "for all",
+      "every"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "core_form",
+      "core_form": "forall"
+    }
+  },
+  {
+    "id": "logic.implies",
+    "lean_type": "Prop → Prop → Prop",
+    "constraints": [],
+    "description": "Logical implication.",
+    "aliases": [
+      "implies",
+      "if then"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "core_form",
+      "core_form": "implies"
+    }
+  },
+  {
+    "id": "logic.not",
+    "lean_type": "Not (a : Prop) : Prop",
+    "constraints": [],
+    "description": "Logical negation.",
+    "aliases": [
+      "not",
+      "negation"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Not"
+    }
+  },
+  {
+    "id": "logic.or",
+    "lean_type": "Or (a b : Prop) : Prop",
+    "constraints": [],
+    "description": "Logical disjunction.",
+    "aliases": [
+      "or",
+      "disjunction"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Or"
+    }
+  },
+  {
+    "id": "number_theory.nat_prime",
+    "lean_type": "Nat.Prime (p : ℕ) : Prop",
+    "constraints": [],
+    "description": "Primality of a natural number.",
+    "aliases": [
+      "prime",
+      "natural prime",
+      "prime natural number"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Nat.Prime"
+    }
+  },
+  {
+    "id": "ring_theory.prime_ideal",
+    "lean_type": "Ideal.IsPrime {α : Type u} [Semiring α] (I : Ideal α) : Prop",
+    "constraints": [
+      "[Semiring α]"
+    ],
+    "description": "An ideal is prime in a commutative ring.",
+    "aliases": [
+      "prime",
+      "prime ideal"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Ideal.IsPrime"
+    }
+  },
+  {
+    "id": "type.nat",
+    "lean_type": "Nat : Type",
+    "constraints": [],
+    "description": "The natural numbers.",
+    "aliases": [
+      "nat",
+      "natural numbers",
+      "natural number"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Nat"
+    }
+  },
+  {
+    "id": "type.int",
+    "lean_type": "Int : Type",
+    "constraints": [],
+    "description": "The integers.",
+    "aliases": [
+      "int",
+      "integers",
+      "integer"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Int"
+    }
+  },
+  {
+    "id": "type.rat",
+    "lean_type": "Rat : Type",
+    "constraints": [],
+    "description": "The rational numbers.",
+    "aliases": [
+      "rat",
+      "rationals",
+      "rational number"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Rat"
+    }
+  },
+  {
+    "id": "type.real",
+    "lean_type": "Real : Type",
+    "constraints": [],
+    "description": "The real numbers.",
+    "aliases": [
+      "real",
+      "reals",
+      "real number"
+    ],
+    "source": {
+      "kind": "mathlib",
+      "revision": "70f3f13433ba3d82a15a7cae679abac9128f102b"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "Real"
+    }
+  },
+  {
+    "id": "relation.lt",
+    "lean_type": "LT.lt {α : Type u} [LT α] : α → α → Prop",
+    "constraints": [
+      "[LT α]"
+    ],
+    "description": "Strict less-than relation.",
+    "aliases": [
+      "<",
+      "less than"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "LT.lt"
+    }
+  },
+  {
+    "id": "relation.le",
+    "lean_type": "LE.le {α : Type u} [LE α] : α → α → Prop",
+    "constraints": [
+      "[LE α]"
+    ],
+    "description": "Less-than-or-equal relation.",
+    "aliases": [
+      "≤",
+      "less than or equal",
+      "at most"
+    ],
+    "source": {
+      "kind": "lean",
+      "revision": "v4.34.0-rc2"
+    },
+    "target": {
+      "target_kind": "declaration",
+      "lean_name": "LE.le"
+    }
+  }
 ]
