@@ -42,7 +42,18 @@ The single semantic-generation boundary in the SleanIR architecture is **human m
 
 A later semantic-auditor model may be evaluated as a watchdog, but it may only flag suspected problems. It may not rewrite the accepted SleanIR or be part of the deterministic compiler.
 
-### 3.2 Common artifact metadata
+### 3.2 Common result envelope
+
+Every path must return one of two top-level outcomes:
+
+- `formalization` - the system believes the statement is sufficiently resolved to formalize;
+- `clarification_required` - one or more unresolved meaning-changing ambiguities remain.
+
+For A/B/C, `formalization` contains the candidate SleanIR document. For D, it contains the Lean theorem statement directly. `clarification_required` must identify the unresolved issue without guessing a formal meaning.
+
+This common outcome contract ensures ambiguity behavior is comparable across all four paths.
+
+### 3.3 Common artifact metadata
 
 All candidate SleanIR documents must support metadata recording:
 
@@ -95,6 +106,7 @@ Expression forms:
 - `literal`;
 - `symbol`;
 - `apply`;
+- `bind` as a generic fallback for non-logical binders such as function abstraction or future binding constructs;
 - `forall`;
 - `exists`;
 - `implies`;
@@ -103,7 +115,7 @@ Expression forms:
 - `not`;
 - `equals`.
 
-Mathematical subject vocabulary still remains in the registry. Candidate C only promotes common logical structure into dedicated nodes.
+Mathematical subject vocabulary still remains in the registry. Candidate C only promotes common logical structure into dedicated nodes while retaining a generic binder so it does not lose expressive coverage.
 
 ### Candidate D: direct NL -> Lean control
 
@@ -216,6 +228,8 @@ Existing paired datasets are supplemented with a smaller curated stress set cove
 - minimal semantic pairs such as implication reversal;
 - niche mathematical subjects underrepresented in existing datasets.
 
+Ambiguous stress items must include a gold `clarification_required` label and the ambiguity that must be resolved. False stress items must include the faithful Lean statement even though that proposition may be unprovable.
+
 ### 8.3 Subject coverage
 
 The combined benchmark should include examples from as many major areas as reasonably available, including arithmetic, algebra, geometry, trigonometry, calculus, linear algebra, logic/set theory, probability/statistics, discrete mathematics, number theory, real/complex analysis, differential equations, abstract algebra, topology, combinatorics, graph theory, differential geometry, category theory, functional analysis, and additional niche areas where source data exists.
@@ -253,6 +267,8 @@ A candidate that fails a hard gate cannot become SleanIR v0 regardless of model 
 ### 10.2 Primary metric
 
 **Semantic faithfulness:** percentage of final Lean outputs judged to represent the same proposition as the benchmark's gold Lean statement.
+
+For ambiguous stress items, semantic success means correctly returning `clarification_required` rather than fabricating a formalization.
 
 ### 10.3 Secondary metrics
 
