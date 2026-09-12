@@ -55,6 +55,11 @@ def test_verified_structural_constraints(registry: Registry) -> None:
     assert registry.get("algebra.odd").constraints == ["[Semiring α]"]
 
 
+def test_prime_ideal_description_does_not_claim_commutative_ring(registry: Registry) -> None:
+    description = registry.get("ring_theory.prime_ideal").description
+    assert "commutative ring" not in description.lower()
+
+
 @pytest.mark.parametrize("entry_id, core_form", [
     ("logic.forall", "forall"), ("logic.implies", "implies"), ("logic.exists", "exists"),
 ])
@@ -109,7 +114,7 @@ def _valid_entry(**overrides: object) -> dict[str, object]:
 
 @pytest.mark.parametrize("entries", [
     [_valid_entry(), _valid_entry()],
-    [_valid_entry(), _valid_entry(id="test.two", lean_name="Test.one")],
+    [_valid_entry(), _valid_entry(id="test.two", target={"target_kind": "declaration", "lean_name": "Test.one"})],
 ])
 def test_duplicate_ids_or_lean_targets_are_rejected(tmp_path: Path, entries: list[dict[str, object]]) -> None:
     curated, aliases = _write_overlay(tmp_path, entries)
@@ -130,10 +135,26 @@ def test_missing_source_revision_is_rejected(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("field, value", [
-    ("id", ""), ("lean_name", ""), ("description", ""), ("source", {}),
+    ("id", ""), ("description", ""), ("source", {}),
 ])
 def test_malformed_required_entry_fields_are_rejected(tmp_path: Path, field: str, value: object) -> None:
     curated, aliases = _write_overlay(tmp_path, [_valid_entry(**{field: value})])
+    with pytest.raises((ValueError, ValidationError)):
+        Registry.from_files(curated, aliases)
+
+
+@pytest.mark.parametrize("target", [
+    {"target_kind": "declaration", "lean_name": ""},
+    {"target_kind": "declaration", "lean_name": "   "},
+])
+def test_empty_declaration_target_names_are_rejected(tmp_path: Path, target: dict[str, str]) -> None:
+    curated, aliases = _write_overlay(tmp_path, [_valid_entry(target=target)])
+    with pytest.raises((ValueError, ValidationError)):
+        Registry.from_files(curated, aliases)
+
+
+def test_empty_lean_type_is_rejected(tmp_path: Path) -> None:
+    curated, aliases = _write_overlay(tmp_path, [_valid_entry(lean_type="")])
     with pytest.raises((ValueError, ValidationError)):
         Registry.from_files(curated, aliases)
 

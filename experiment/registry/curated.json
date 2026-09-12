@@ -271,7 +271,7 @@
     "constraints": [
       "[Semiring α]"
     ],
-    "description": "An ideal is prime in a commutative ring.",
+    "description": "An ideal is prime when it is proper and membership of a product forces membership of at least one factor.",
     "aliases": [
       "prime",
       "prime ideal"
